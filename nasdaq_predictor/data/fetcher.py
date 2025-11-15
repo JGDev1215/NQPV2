@@ -1,5 +1,7 @@
 """
 Data fetching layer for retrieving market data from Supabase and yfinance
+
+Includes data quality validation to prevent corrupt OHLC data from being stored.
 """
 import logging
 import yfinance as yf
@@ -22,6 +24,7 @@ from ..config.settings import (
 )
 from .processor import filter_trading_session_data
 from ..utils.timezone import ensure_utc
+from ..core.data_quality_validator import OHLCValidator
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +35,66 @@ class YahooFinanceDataFetcher:
     def __init__(self, market_data_repo=None):
         self.trading_sessions = TRADING_SESSIONS
         self.market_data_repo = market_data_repo
+        self.validators = {}  # Cache validators by ticker symbol
+
+    def _get_validator(self, ticker_symbol: str) -> OHLCValidator:
+        """Get or create a validator instance for a ticker"""
+        if ticker_symbol not in self.validators:
+            self.validators[ticker_symbol] = OHLCValidator(ticker_symbol)
+        return self.validators[ticker_symbol]
+
+    def _validate_ohlc_bars(self, df: pd.DataFrame, ticker_symbol: str) -> Tuple[pd.DataFrame, dict]:
+        """
+        Validate OHLC bars in a DataFrame and return cleaned data + validation stats
+
+        Args:
+            df: DataFrame with OHLC data (index=timestamp, columns=Open,High,Low,Close,Volume)
+            ticker_symbol: Ticker symbol for logging and validation
+
+        Returns:
+            Tuple of (cleaned_dataframe, validation_stats_dict)
+            - Cleaned DataFrame with only valid bars
+            - Stats dict with validation results
+        """
+        if df.empty:
+            return df, {'valid': 0, 'invalid': 0, 'removed_indices': []}
+
+        validator = self._get_validator(ticker_symbol)
+        valid_rows = []
+        invalid_count = 0
+        removed_indices = []
+
+        # Validate each bar
+        for timestamp, row in df.iterrows():
+            bar = {
+                'open': row.get('Open'),
+                'high': row.get('High'),
+                'low': row.get('Low'),
+                'close': row.get('Close'),
+                'volume': row.get('Volume', 0)
+            }
+            is_valid, errors = validator.validate_bar(bar)
+
+            if is_valid:
+                valid_rows.append(timestamp)
+            else:
+                invalid_count += 1
+                removed_indices.append(str(timestamp))
+                logger.warning(f"Invalid OHLC bar for {ticker_symbol} at {timestamp}: {errors}")
+
+        # Create cleaned DataFrame with only valid bars
+        cleaned_df = df.loc[valid_rows] if valid_rows else pd.DataFrame()
+
+        stats = {
+            'valid': len(valid_rows),
+            'invalid': invalid_count,
+            'removed_indices': removed_indices
+        }
+
+        if invalid_count > 0:
+            logger.info(f"Validation for {ticker_symbol}: {len(valid_rows)} valid, {invalid_count} invalid bars removed")
+
+        return cleaned_df, stats
 
     def fetch_ticker_data(self, ticker_symbol: str) -> Optional[Dict[str, Any]]:
         """
@@ -67,30 +130,46 @@ class YahooFinanceDataFetcher:
                 logger.warning(f"No hourly data in trading session for {ticker_symbol}")
                 return None
 
+            # Validate hourly data quality
+            hourly_hist, hourly_stats = self._validate_ohlc_bars(hourly_hist, f"{ticker_symbol}:1h")
+            if hourly_hist.empty:
+                logger.warning(f"No valid hourly data for {ticker_symbol} after quality validation")
+                return None
+
             # Fetch 1-minute data for small timeframe calculations
             minute_hist = ticker.history(period=HIST_PERIOD_MINUTE, interval=HIST_INTERVAL_MINUTE)
             # Filter 1-minute data to trading session hours
             minute_hist = filter_trading_session_data(minute_hist, ticker_symbol, self.trading_sessions)
+            # Validate 1-minute data quality
+            minute_hist, minute_stats = self._validate_ohlc_bars(minute_hist, f"{ticker_symbol}:1m")
 
             # Fetch 5-minute data for block analysis and intraday predictions
             five_min_hist = ticker.history(period=HIST_PERIOD_5MIN, interval=HIST_INTERVAL_5MIN)
             # Filter 5-minute data to trading session hours
             five_min_hist = filter_trading_session_data(five_min_hist, ticker_symbol, self.trading_sessions)
+            # Validate 5-minute data quality
+            five_min_hist, five_min_stats = self._validate_ohlc_bars(five_min_hist, f"{ticker_symbol}:5m")
 
             # Fetch 15-minute data for mid-timeframe analysis
             fifteen_min_hist = ticker.history(period=HIST_PERIOD_15MIN, interval=HIST_INTERVAL_15MIN)
             # Filter 15-minute data to trading session hours
             fifteen_min_hist = filter_trading_session_data(fifteen_min_hist, ticker_symbol, self.trading_sessions)
+            # Validate 15-minute data quality
+            fifteen_min_hist, fifteen_min_stats = self._validate_ohlc_bars(fifteen_min_hist, f"{ticker_symbol}:15m")
 
             # Fetch 30-minute data for intraday predictions
             thirty_min_hist = ticker.history(period=HIST_PERIOD_30MIN, interval=HIST_INTERVAL_30MIN)
             # Filter 30-minute data to trading session hours
             thirty_min_hist = filter_trading_session_data(thirty_min_hist, ticker_symbol, self.trading_sessions)
+            # Validate 30-minute data quality
+            thirty_min_hist, thirty_min_stats = self._validate_ohlc_bars(thirty_min_hist, f"{ticker_symbol}:30m")
 
             # Get daily data for previous day high/low
             daily_hist = ticker.history(period='7d', interval='1d')
             # Filter daily data to trading session days
             daily_hist = filter_trading_session_data(daily_hist, ticker_symbol, self.trading_sessions)
+            # Validate daily data quality
+            daily_hist, daily_stats = self._validate_ohlc_bars(daily_hist, f"{ticker_symbol}:1d")
 
             # Get current price and time
             current_price = hourly_hist['Close'].iloc[-1]
@@ -124,7 +203,7 @@ class YahooFinanceDataFetcher:
             interval: Data interval (default '5m')
 
         Returns:
-            DataFrame with intraday OHLC data, or None if fetch fails
+            DataFrame with intraday OHLC data (validated), or None if fetch fails
         """
         try:
             ticker = yf.Ticker(ticker_symbol)
@@ -132,6 +211,13 @@ class YahooFinanceDataFetcher:
 
             if hist.empty:
                 logger.warning(f"No intraday data available for {ticker_symbol}")
+                return None
+
+            # Validate intraday data quality
+            hist, validation_stats = self._validate_ohlc_bars(hist, f"{ticker_symbol}:intraday:{interval}")
+
+            if hist.empty:
+                logger.warning(f"No valid intraday data for {ticker_symbol} after quality validation")
                 return None
 
             return hist
@@ -178,20 +264,41 @@ class YahooFinanceDataFetcher:
                 )
 
                 if market_data_list:
-                    # Convert MarketData objects to bar dictionaries
+                    # Validate bars before adding to result
+                    validator = self._get_validator(ticker_symbol)
+                    valid_count = 0
+                    invalid_count = 0
+
                     for md in market_data_list:
                         bar = {
-                            'timestamp': md.timestamp,
                             'open': md.open,
                             'high': md.high,
                             'low': md.low,
                             'close': md.close,
                             'volume': md.volume or 0
                         }
-                        bars.append(bar)
+                        is_valid, errors = validator.validate_bar(bar)
 
-                    logger.debug(f"Fetched {len(bars)} bars for {ticker_symbol} from Supabase ({interval} interval)")
-                    return bars
+                        if is_valid:
+                            bars.append({
+                                'timestamp': md.timestamp,
+                                'open': md.open,
+                                'high': md.high,
+                                'low': md.low,
+                                'close': md.close,
+                                'volume': md.volume or 0
+                            })
+                            valid_count += 1
+                        else:
+                            invalid_count += 1
+                            logger.warning(f"Invalid OHLC bar for {ticker_symbol} from Supabase at {md.timestamp}: {errors}")
+
+                    if invalid_count > 0:
+                        logger.info(f"Supabase validation for {ticker_symbol}: {valid_count} valid, {invalid_count} invalid bars skipped")
+
+                    if bars:
+                        logger.debug(f"Fetched {len(bars)} validated bars for {ticker_symbol} from Supabase ({interval} interval)")
+                        return bars
                 else:
                     logger.debug(f"No Supabase data for {ticker_symbol} (UUID: {ticker_id}), falling back to yfinance")
             except Exception as e:
@@ -211,8 +318,15 @@ class YahooFinanceDataFetcher:
                 logger.debug(f"No data available for {ticker_symbol} between {start} and {end}")
                 return []
 
+            # Validate OHLC data quality before converting to dictionaries
+            hist_validated, validation_stats = self._validate_ohlc_bars(hist, f"{ticker_symbol}:yfinance:{interval}")
+
+            if hist_validated.empty:
+                logger.warning(f"No valid yfinance data for {ticker_symbol} between {start} and {end} after quality validation")
+                return []
+
             # Convert DataFrame to list of dictionaries
-            for timestamp, row in hist.iterrows():
+            for timestamp, row in hist_validated.iterrows():
                 bar = {
                     'timestamp': timestamp,
                     'open': float(row['Open']),
@@ -223,7 +337,7 @@ class YahooFinanceDataFetcher:
                 }
                 bars.append(bar)
 
-            logger.debug(f"Fetched {len(bars)} bars for {ticker_symbol} from yfinance ({interval} interval)")
+            logger.debug(f"Fetched {len(bars)} validated bars for {ticker_symbol} from yfinance ({interval} interval)")
             return bars
 
         except Exception as e:
