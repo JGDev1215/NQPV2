@@ -1123,3 +1123,207 @@ body {
     color: white;
     font-weight: 700;
 }
+
+/* ========================================
+   PHASE 6: ENHANCED UI/UX STYLES
+   ======================================== */
+
+/* Status Indicator Enhanced States */
+.status-indicator.refreshing {
+    background: #00bfff;
+    box-shadow: 0 0 12px rgba(0, 191, 255, 0.8);
+    animation: pulse-glow 1s ease-in-out infinite;
+}
+
+.status-indicator.error {
+    background: #ff1744;
+    box-shadow: 0 0 12px rgba(255, 23, 68, 0.8);
+    animation: pulse-error 0.6s ease-in-out infinite;
+}
+
+@keyframes pulse-error {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.6;
+        transform: scale(1.1);
+    }
+}
+
+/* Filter Panel Styles */
+.filter-panel {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.filter-panel:hover {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.filter-panel h5 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.direction-filter {
+    font-weight: 600;
+    transition: all 0.3s ease;
+    opacity: 0.6;
+}
+
+.direction-filter:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.direction-filter.active {
+    opacity: 1;
+    transform: translateY(-2px);
+}
+
+/* Form Controls Enhancement */
+.form-control, .form-range {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.form-control:focus, .form-range:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(0, 212, 255, 0.5);
+    box-shadow: 0 0 0 0.2rem rgba(0, 212, 255, 0.25);
+    color: white;
+}
+
+.form-control::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Input Range Slider Enhancement */
+.form-range {
+    height: 6px;
+}
+
+.form-range::-webkit-slider-thumb {
+    width: 18px;
+    height: 18px;
+    background: linear-gradient(135deg, #00d4ff, #667eea);
+    border: 2px solid white;
+    box-shadow: 0 2px 8px rgba(0, 212, 255, 0.4);
+}
+
+.form-range::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: linear-gradient(135deg, #00d4ff, #667eea);
+    border: 2px solid white;
+    box-shadow: 0 2px 8px rgba(0, 212, 255, 0.4);
+}
+
+/* Filter Summary Styles */
+#filter-summary {
+    border-left: 3px solid #00d4ff;
+    border-radius: 6px;
+    background: rgba(0, 212, 255, 0.05);
+}
+
+/* Countdown Timer Styles */
+#countdown-timer {
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    color: #00d4ff;
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+}
+
+/* Responsive Grid Enhancements */
+@media (max-width: 1200px) {
+    .ticker-grid {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .ticker-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 15px;
+    }
+
+    .header h1 {
+        font-size: 1.8rem;
+    }
+
+    .filter-panel {
+        margin: 15px -15px;
+        border-radius: 0;
+        padding: 15px;
+    }
+
+    .row > div {
+        margin-bottom: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .ticker-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .header h1 {
+        font-size: 1.4rem;
+    }
+
+    .header {
+        padding: 15px 0;
+    }
+
+    .refresh-status {
+        font-size: 0.7rem;
+        padding: 6px 12px;
+        gap: 8px;
+    }
+
+    #countdown-timer {
+        font-size: 0.9rem;
+    }
+
+    .direction-filter {
+        font-size: 0.8rem;
+        padding: 6px 8px;
+    }
+}
+
+/* Loading State Enhancement */
+.loading {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+}
+
+.spinner-border {
+    color: #00d4ff;
+}
+
+/* Animation for data freshness transitions */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#content {
+    animation: fadeInUp 0.6s ease-out;
+}

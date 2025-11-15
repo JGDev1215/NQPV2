@@ -116,9 +116,20 @@ try:
     logger.info("Initializing Dependency Injection Container...")
     app.container = create_container()
     logger.info("✓ DI Container initialized successfully with all Phase 2 services")
+
+    # Detect circular dependencies (Phase 1.1)
+    try:
+        app.container.detect_circular_dependencies()
+        logger.info("✓ Circular dependency detection passed - no circular dependencies found")
+    except RuntimeError as e:
+        logger.error(f"✗ Circular dependency detected: {e}")
+        raise
+
 except Exception as e:
     logger.error(f"✗ Failed to initialize DI Container: {e}")
     logger.error("Application will continue but services will not be available")
+    import traceback
+    logger.error(traceback.format_exc())
     app.container = None
 
 # Create and register API blueprints
