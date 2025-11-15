@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Global Market Predictor - Real-time predictions for US Futures and Global Indices">
+    <title>Global Market Predictor - Multi-Asset Dashboard</title>
+
+    <!-- External Stylesheets -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="/static/css/styles.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header Section -->
+    <div class="header">
+        <div class="container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;">
+                <h1 style="margin: 0; font-weight: 800; font-size: 2.2rem; text-shadow: 0 2px 10px rgba(0,0,0,0.3);">🌍 Global Market Predictor</h1>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <a href="/history" style="background: rgba(255, 255, 255, 0.2); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px;" onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'; this.style.transform='translateY(0)'">
+                        📊 Predictions
+                    </a>
+                    <a href="/block-predictions" style="background: rgba(255, 255, 255, 0.2); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px;" onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'; this.style.transform='translateY(0)'">
+                        🔮 Block Predictions
+                    </a>
+                    <a href="/fibonacci-pivots" style="background: rgba(255, 255, 255, 0.2); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px;" onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'; this.style.transform='translateY(0)'">
+                        📐 Fib Pivots
+                    </a>
+                </div>
+            </div>
+            <p class="text-center">Multi-Asset Dashboard - Futures & Indices</p>
+            <div class="text-center">
+                <div class="refresh-status">
+                    <span class="status-indicator fresh" id="data-freshness-dot"></span>
+                    <span id="refresh-info">
+                        Next update: <span id="countdown-timer">--:--</span>
+                        <span id="update-type" class="update-type-badge"></span>
+                    </span>
+                    <span id="last-update-time" class="last-update-text">Last: --</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <div class="container">
+        <!-- Loading State -->
+        <div id="loading" class="loading text-center" style="padding: 50px;">
+            <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3" style="color: white; font-weight: 600;">Fetching market data...</p>
+        </div>
+
+        <!-- Content Area (Hidden until data loads) -->
+        <div id="content" style="display: none;">
+            <!-- US Futures Section -->
+            <div class="section-header">
+                <h2 class="section-title">🇺🇸 US Futures</h2>
+                <p class="section-subtitle">E-mini Futures Contracts</p>
+            </div>
+            <div class="ticker-grid" id="us-futures-grid"></div>
+
+            <!-- Global Indices Section -->
+            <div class="section-header">
+                <h2 class="section-title">📊 Global Indices</h2>
+                <p class="section-subtitle">Major Market Indices & Volatility</p>
+            </div>
+            <div class="ticker-grid" id="indices-grid"></div>
+
+            <!-- Cryptocurrency Section - HIDDEN (ON ICE) -->
+            <!-- Backend crypto code remains functional but not displayed -->
+            <!--
+            <div class="section-header">
+                <h2 class="section-title">🪙 Cryptocurrency</h2>
+                <p class="section-subtitle">Digital Assets (24/7 Trading)</p>
+            </div>
+            <div class="ticker-grid" id="crypto-grid"></div>
+            -->
+        </div>
+    </div>
+
+    <!-- External Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,1125 @@
+/* Global Market Predictor - Main Stylesheet */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #667eea 100%);
+    background-attachment: fixed;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    font-size: 14px;
+}
+
+/* Header Styles */
+.header {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+    color: white;
+    padding: 25px 0 20px 0;
+    margin-bottom: 25px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+.header h1 {
+    font-weight: 800;
+    font-size: 2.2rem;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+}
+
+.header p {
+    font-weight: 400;
+    opacity: 0.95;
+    font-size: 0.95rem;
+    margin-bottom: 12px;
+}
+
+/* Refresh Status Styles */
+.refresh-status {
+    font-size: 0.8rem;
+    opacity: 0.9;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 8px 16px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Data Freshness Indicator Dot */
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.status-indicator.fresh {
+    background: #00ff00;
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.6);
+}
+
+.status-indicator.moderate {
+    background: #ffaa00;
+    box-shadow: 0 0 8px rgba(255, 170, 0, 0.6);
+}
+
+.status-indicator.stale {
+    background: #ff0000;
+    box-shadow: 0 0 8px rgba(255, 0, 0, 0.6);
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Update Type Badge */
+.update-type-badge {
+    background: rgba(126, 34, 206, 0.6);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 4px;
+}
+
+/* Last Update Text */
+.last-update-text {
+    font-size: 0.75rem;
+    opacity: 0.85;
+    font-style: italic;
+}
+
+/* Refresh Imminent Animation */
+.refresh-imminent {
+    animation: pulse-fast 1s ease-in-out infinite;
+}
+
+@keyframes pulse-fast {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: scale(1.02);
+    }
+}
+
+/* Updating Indicator */
+.updating {
+    animation: blink 0.5s ease-in-out infinite;
+}
+
+@keyframes blink {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Ticker Grid Layout */
+.ticker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+/* Ticker Card Styles */
+.ticker-card {
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(10px);
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.ticker-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.25);
+}
+
+.ticker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.ticker-symbol {
+    font-weight: 800;
+    font-size: 1.3rem;
+    color: #1e3c72;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ticker-type-badge {
+    font-size: 0.6rem;
+    background: #e9ecef;
+    color: #495057;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.ticker-type-badge.futures {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.ticker-type-badge.index {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.ticker-type-badge.crypto {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: #ffffff;
+    box-shadow: 0 2px 4px rgba(240, 147, 251, 0.3);
+}
+
+/* Market Status Badge */
+.market-status-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.market-status-badge.open {
+    background: #198754;
+    color: white;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.market-status-badge.closed {
+    background: #dc3545;
+    color: white;
+}
+
+.market-status-badge.premarket,
+.market-status-badge.afterhours {
+    background: #fd7e14;
+    color: white;
+}
+
+/* Price Display */
+.ticker-price {
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 10px 0;
+    line-height: 1.1;
+}
+
+.ticker-name {
+    font-size: 0.7rem;
+    color: #6c757d;
+    margin-bottom: 12px;
+    font-weight: 500;
+}
+
+/* Prediction Badge */
+.prediction-badge {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+}
+
+.prediction-badge.bullish {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(17, 153, 142, 0.3);
+}
+
+.prediction-badge.bearish {
+    background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(235, 51, 73, 0.3);
+}
+
+/* Confidence Bar */
+.confidence-bar-container {
+    height: 20px;
+    background: #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 12px;
+}
+
+.confidence-bar {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.5s ease;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 8px;
+}
+
+.confidence-bar.bullish {
+    background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+}
+
+.confidence-bar.bearish {
+    background: linear-gradient(90deg, #dc3545 0%, #c82333 100%);
+}
+
+.confidence-value {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+/* Quick Metrics */
+.quick-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.metric-box {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid #e9ecef;
+}
+
+.metric-label {
+    font-size: 0.65rem;
+    color: #6c757d;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    letter-spacing: 0.3px;
+}
+
+.metric-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+/* Expandable Details */
+.expand-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 12px;
+    transition: all 0.2s ease;
+}
+
+.expand-btn:hover {
+    background: #5568d3;
+    transform: scale(1.02);
+}
+
+.details-panel {
+    display: none;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 2px solid #e9ecef;
+}
+
+.details-panel.show {
+    display: block;
+}
+
+/* Signal Summary */
+.signal-summary {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+    font-size: 0.75rem;
+}
+
+.signal-summary strong {
+    color: #495057;
+}
+
+/* Volatility Indicator */
+.volatility-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.volatility-indicator.low {
+    background: #d4edda;
+    color: #155724;
+}
+
+.volatility-indicator.moderate {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.volatility-indicator.high,
+.volatility-indicator.extreme {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Section Headers */
+.section-header {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 15px 20px;
+    margin: 25px 0 15px 0;
+    box-shadow: 0 4px 16px rgba(31, 38, 135, 0.15);
+}
+
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e3c72;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-subtitle {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-top: 4px;
+}
+
+/* Ticker Icons */
+.ticker-icon {
+    font-size: 1.5rem;
+}
+
+/* Error State */
+.error-card {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+/* Loading State */
+.loading {
+    animation: fadeIn 0.5s ease-in;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 0 8px rgba(25, 135, 84, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 16px rgba(25, 135, 84, 0.7);
+    }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .ticker-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .header h1 {
+        font-size: 1.6rem !important;
+    }
+
+    /* Stack header items vertically on mobile */
+    .header .container > div {
+        flex-direction: column !important;
+        gap: 15px;
+    }
+
+    .header .container > div h1 {
+        text-align: center;
+    }
+
+    .ticker-price {
+        font-size: 1.6rem;
+    }
+
+    .quick-metrics {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .header h1 {
+        font-size: 1.4rem;
+    }
+
+    .ticker-symbol {
+        font-size: 1.1rem;
+    }
+
+    .ticker-price {
+        font-size: 1.4rem;
+    }
+}
+
+/* ============================================
+   Reference Levels Table Styles
+   ============================================ */
+
+.reference-levels-container {
+    margin-top: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 12px;
+    backdrop-filter: blur(5px);
+}
+
+.reference-levels-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.reference-levels-table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.reference-levels-table th {
+    padding: 8px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.reference-levels-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.reference-levels-table tbody tr {
+    transition: background 0.2s ease;
+}
+
+.reference-levels-table tbody tr:hover {
+    background: rgba(102, 126, 234, 0.15);
+}
+
+.reference-levels-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Level name styling */
+.level-name {
+    font-weight: 600;
+    color: #000000;  /* Changed to black for all reference levels */
+}
+
+/* Single-price level styling */
+.level-price {
+    font-family: 'Courier New', Courier, monospace;
+    color: #000000;  /* Changed to black for all reference levels */
+    font-weight: 500;
+}
+
+/* Kill Zone specific styling - maintain current colors */
+.reference-levels-table tr.kill-zone .level-name {
+    color: #e0e0e0;  /* Maintain original color for kill zones */
+}
+
+.reference-levels-table tr.kill-zone .level-price {
+    color: #f0f0f0;  /* Maintain original color for kill zones */
+}
+
+/* Range-based level styling (high/low) */
+.level-range {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.7rem;
+}
+
+.range-high {
+    color: #4caf50;
+    font-weight: 500;
+}
+
+.range-low {
+    color: #f44336;
+    font-weight: 500;
+}
+
+/* Signal badge styling */
+.signal-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.signal-badge.bullish {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    color: #155724;
+}
+
+.signal-badge.bearish {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    color: #721c24;
+}
+
+.signal-badge.neutral {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    color: #856404;
+}
+
+.signal-badge.n\/a {
+    background: rgba(255, 255, 255, 0.1);
+    color: #999;
+}
+
+/* Distance indicator */
+.distance-value {
+    font-size: 0.7rem;
+    color: #b0b0b0;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+/* Hidden rows (for show more functionality) */
+.reference-levels-table tr.hidden-row {
+    display: none;
+}
+
+.reference-levels-table tr.hidden-row.show {
+    display: table-row;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Show more button */
+.show-more-btn {
+    background: transparent;
+    color: #667eea;
+    border: 2px solid #667eea;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    width: 100%;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.show-more-btn:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.show-more-btn:active {
+    transform: translateY(0);
+}
+
+/* Responsive adjustments for reference levels table */
+@media (max-width: 768px) {
+    .reference-levels-table {
+        font-size: 0.7rem;
+    }
+
+    .reference-levels-table th,
+    .reference-levels-table td {
+        padding: 5px 6px;
+    }
+
+    .level-name {
+        font-size: 0.7rem;
+    }
+
+    .signal-badge {
+        font-size: 0.6rem;
+        padding: 1px 6px;
+    }
+
+    .show-more-btn {
+        font-size: 0.65rem;
+        padding: 5px 12px;
+    }
+}
+
+/* ============================================
+   Intraday Predictions Table Styles (9am/10am)
+   ============================================ */
+
+.intraday-predictions-container {
+    margin-top: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 12px;
+    backdrop-filter: blur(5px);
+}
+
+.intraday-predictions-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 6px;
+    overflow: hidden;
+    font-size: 0.75rem;
+}
+
+.intraday-predictions-table thead {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+}
+
+.intraday-predictions-table th {
+    padding: 8px 6px;
+    text-align: left;
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.intraday-predictions-table td {
+    padding: 10px 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    color: #212529;
+}
+
+.intraday-predictions-table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.intraday-predictions-table tbody tr:hover {
+    background: rgba(102, 126, 234, 0.05);
+}
+
+/* Window label column */
+.window-label {
+    font-weight: 600;
+    color: #667eea;
+    white-space: nowrap;
+}
+
+/* Prediction direction styling */
+.bullish-pred {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.bearish-pred {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+/* Confidence display */
+.confidence-display {
+    text-align: center;
+}
+
+.confidence-display strong {
+    font-size: 0.8rem;
+    color: #667eea;
+}
+
+.confidence-display small {
+    font-size: 0.65rem;
+    color: #888;
+    font-weight: normal;
+}
+
+/* Prediction status badges */
+.prediction-status-badge {
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    white-space: nowrap;
+    display: inline-block;
+}
+
+.status-pending {
+    background: #e9ecef;
+    color: #6c757d;
+}
+
+.status-active {
+    background: linear-gradient(135deg, #cfe2ff 0%, #9ec5fe 100%);
+    color: #084298;
+    box-shadow: 0 2px 4px rgba(13, 110, 253, 0.2);
+}
+
+.status-locked {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffecb5 100%);
+    color: #997404;
+    box-shadow: 0 2px 4px rgba(255, 193, 7, 0.2);
+}
+
+.status-verified {
+    background: linear-gradient(135deg, #d1e7dd 0%, #a3cfbb 100%);
+    color: #0a3622;
+    box-shadow: 0 2px 4px rgba(25, 135, 84, 0.2);
+}
+
+/* Result badges */
+.result-badge {
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    white-space: nowrap;
+    display: inline-block;
+}
+
+.result-correct {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    color: #155724;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+}
+
+.result-wrong {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    color: #721c24;
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+}
+
+/* Prediction metadata footer */
+.prediction-meta {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.7rem;
+    color: #6c757d;
+    text-align: center;
+}
+
+.prediction-meta strong {
+    color: #495057;
+    text-transform: capitalize;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+    .intraday-predictions-table {
+        font-size: 0.65rem;
+    }
+
+    .intraday-predictions-table th {
+        padding: 6px 4px;
+        font-size: 0.6rem;
+    }
+
+    .intraday-predictions-table td {
+        padding: 8px 4px;
+    }
+
+    .prediction-status-badge,
+    .result-badge {
+        font-size: 0.6rem;
+        padding: 2px 6px;
+    }
+
+    .window-label {
+        font-size: 0.7rem;
+    }
+}
+
+/* ============================================================================
+   PREDICTION HISTORY TABLE STYLES (24-HOUR)
+   ============================================================================ */
+
+.prediction-history-container {
+    margin-top: 20px;
+    padding: 15px;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.history-title {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.history-accuracy-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.history-accuracy-badge.high-accuracy {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+
+.history-accuracy-badge.low-accuracy {
+    background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+}
+
+.prediction-history-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.prediction-history-table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.prediction-history-table thead th {
+    padding: 10px 8px;
+    text-align: left;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.prediction-history-table tbody tr {
+    transition: all 0.2s ease;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.prediction-history-table tbody tr:hover {
+    background: #f8f9fa;
+    transform: translateX(2px);
+}
+
+.prediction-history-table tbody tr.history-hidden-row {
+    display: none;
+}
+
+.prediction-history-table tbody tr.history-hidden-row.show {
+    display: table-row;
+}
+
+.prediction-history-table tbody td {
+    padding: 10px 8px;
+    font-size: 0.75rem;
+    color: #495057;
+    vertical-align: middle;
+}
+
+.history-time {
+    font-family: 'Courier New', monospace;
+    font-size: 0.7rem;
+    color: #6c757d;
+    white-space: nowrap;
+}
+
+.history-prediction {
+    font-weight: 600;
+}
+
+.history-prediction.bullish-pred {
+    color: #28a745;
+}
+
+.history-prediction.bearish-pred {
+    color: #dc3545;
+}
+
+.history-confidence {
+    font-weight: 600;
+    color: #495057;
+}
+
+.history-result-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+}
+
+.history-result-badge.result-correct {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    color: #155724;
+}
+
+.history-result-badge.result-wrong {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    color: #721c24;
+}
+
+.history-result-badge.result-pending {
+    background: linear-gradient(135deg, #e2e3e5 0%, #d6d8db 100%);
+    color: #383d41;
+}
+
+.history-price-change {
+    font-family: 'Courier New', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.history-price-change.positive {
+    color: #28a745;
+}
+
+.history-price-change.negative {
+    color: #dc3545;
+}
+
+.show-more-history-btn {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+}
+
+.show-more-history-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.show-more-history-btn:active {
+    transform: translateY(0);
+}
+
+/* Responsive styles for prediction history */
+@media (max-width: 768px) {
+    .prediction-history-table {
+        font-size: 0.65rem;
+    }
+
+    .prediction-history-table thead th,
+    .prediction-history-table tbody td {
+        padding: 8px 4px;
+    }
+
+    .history-time {
+        font-size: 0.6rem;
+    }
+
+    .history-result-badge {
+        font-size: 0.6rem;
+        padding: 3px 6px;
+    }
+
+    .history-accuracy-badge {
+        font-size: 0.7rem;
+        padding: 5px 10px;
+    }
+}
+
+/* Daily accuracy metric box styling */
+.metric-box.daily-accuracy {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+}
+
+.metric-box.daily-accuracy .metric-label {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.metric-box.daily-accuracy .metric-value {
+    color: white;
+    font-weight: 700;
+}

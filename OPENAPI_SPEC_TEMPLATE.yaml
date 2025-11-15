@@ -1,0 +1,526 @@
+# OpenAPI 3.0 Specification - NASDAQ Predictor API v1.0
+# This template shows proper structure for all endpoints
+
+openapi: 3.0.0
+
+info:
+  title: NASDAQ Predictor API
+  version: 1.0.0
+  description: |
+    RESTful API for market prediction analysis and historical data access.
+    
+    ## Features
+    - Real-time market predictions using AI/ML
+    - 7-block hourly forecasts (0-23)
+    - Historical market data retrieval
+    - Prediction accuracy metrics
+    - Market status and trading hours
+    - Scheduler job monitoring
+    
+    ## Authentication
+    Future versions will support API keys. Currently open access.
+    
+    ## Rate Limiting
+    - Free: 100 requests/hour
+    - Premium: 10,000 requests/hour
+    
+    ## Error Handling
+    All errors return standardized JSON with error code, message, and details.
+
+servers:
+  - url: http://localhost:5000
+    description: Development server
+  - url: https://api.example.com
+    description: Production server
+
+tags:
+  - name: Block Predictions
+    description: 7-block hourly market forecasts
+  - name: Market Data
+    description: Current prices and market summaries
+  - name: Market Status
+    description: Market open/close times and trading status
+  - name: Predictions
+    description: Individual predictions and 24-hour history
+  - name: Historical Data
+    description: OHLCV price data
+  - name: Analytics
+    description: Accuracy metrics and signal analysis
+  - name: Scheduler
+    description: Job execution monitoring
+  - name: Health & Status
+    description: Health checks and API info
+
+components:
+  schemas:
+    # ===== Standard Response Wrappers =====
+    
+    SuccessResponse:
+      type: object
+      required:
+        - success
+        - message
+        - data
+        - meta
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Operation completed successfully"
+        data:
+          type: object
+          description: Response payload
+        meta:
+          type: object
+          properties:
+            request_id:
+              type: string
+              example: "req_abc123xyz"
+            timestamp:
+              type: string
+              format: date-time
+              example: "2025-11-15T12:34:56.789Z"
+            api_version:
+              type: string
+              example: "1.0.0"
+
+    PaginatedResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            pagination:
+              type: object
+              properties:
+                page:
+                  type: integer
+                  example: 1
+                page_size:
+                  type: integer
+                  example: 20
+                total_count:
+                  type: integer
+                  example: 150
+                total_pages:
+                  type: integer
+                  example: 8
+                has_next:
+                  type: boolean
+                  example: true
+                has_previous:
+                  type: boolean
+                  example: false
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - error
+        - meta
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "VALIDATION_ERROR"
+            message:
+              type: string
+              example: "Invalid ticker format"
+            type:
+              type: string
+              example: "ValidationException"
+            details:
+              type: object
+              description: Error-specific details
+            validation_errors:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
+        meta:
+          type: object
+          properties:
+            request_id:
+              type: string
+              example: "req_abc123xyz"
+            timestamp:
+              type: string
+              format: date-time
+            http_status:
+              type: integer
+              example: 400
+
+    # ===== Data Models =====
+
+    BlockPrediction:
+      type: object
+      properties:
+        hour:
+          type: integer
+          minimum: 0
+          maximum: 23
+          example: 14
+        timestamp:
+          type: string
+          format: date-time
+        prediction:
+          type: string
+          enum: [UP, DOWN, NEUTRAL]
+          example: "UP"
+        confidence:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          example: 0.85
+        target_price:
+          type: number
+          format: float
+          example: 21500.25
+        reference_price:
+          type: number
+          format: float
+          example: 21450.00
+        actual_price:
+          type: number
+          format: float
+          nullable: true
+          example: 21525.50
+        verification_status:
+          type: string
+          enum: [CORRECT, INCORRECT, PENDING]
+          example: "PENDING"
+
+    MarketStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [OPEN, CLOSED, PRE_MARKET, AFTER_HOURS]
+          example: "OPEN"
+        is_trading:
+          type: boolean
+          example: true
+        timezone:
+          type: string
+          example: "America/New_York"
+        session_type:
+          type: string
+          example: "REGULAR"
+        current_time:
+          type: string
+          format: date-time
+        next_open:
+          type: string
+          format: date-time
+          nullable: true
+        next_close:
+          type: string
+          format: date-time
+          nullable: true
+        last_trading_date:
+          type: string
+          format: date
+
+    # ===== Parameters =====
+
+  parameters:
+    TickerParam:
+      name: ticker
+      in: path
+      required: true
+      schema:
+        type: string
+        example: "NQ=F"
+      description: Ticker symbol (NQ=F, ES=F, ^FTSE, etc)
+
+    DateParam:
+      name: date
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date
+        example: "2025-11-15"
+      description: Trading date (ISO 8601 format)
+
+    PageParam:
+      name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+        example: 1
+      description: Page number (1-indexed)
+
+    PageSizeParam:
+      name: page_size
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+        example: 20
+      description: Items per page (max 100)
+
+    # ===== Responses =====
+
+  responses:
+    Success200:
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SuccessResponse'
+
+    Created201:
+      description: Resource created
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SuccessResponse'
+      headers:
+        X-Request-ID:
+          schema:
+            type: string
+          description: Unique request identifier
+
+    ValidationError400:
+      description: Validation error - invalid input parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: "VALIDATION_ERROR"
+              message: "Invalid ticker format"
+              type: "ValidationException"
+              validation_errors:
+                ticker: ["Invalid ticker format. Expected NQ=F or ^FTSE"]
+
+    NotFound404:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: "NOT_FOUND"
+              message: "Prediction not found for NQ=F at hour 14"
+
+    RateLimit429:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Requests allowed per hour
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Requests remaining
+        X-RateLimit-Reset:
+          schema:
+            type: string
+            format: date-time
+          description: Time when limit resets
+
+    InternalError500:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication (future feature)
+
+paths:
+  /api/v1/block-predictions/{ticker}:
+    get:
+      summary: Get 24-Hour Block Predictions
+      description: |
+        Retrieve 24-hour block predictions for a specific ticker.
+        Returns predictions for all 24 hours (0-23).
+      operationId: get24HourBlockPredictions
+      tags:
+        - Block Predictions
+      parameters:
+        - $ref: '#/components/parameters/TickerParam'
+        - $ref: '#/components/parameters/DateParam'
+      responses:
+        '200':
+          description: Predictions retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          ticker:
+                            type: string
+                            example: "NQ=F"
+                          date:
+                            type: string
+                            format: date
+                          predictions:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/BlockPrediction'
+                          count:
+                            type: integer
+              example:
+                success: true
+                message: "Retrieved 24 predictions for NQ=F"
+                data:
+                  ticker: "NQ=F"
+                  date: "2025-11-15"
+                  predictions:
+                    - hour: 0
+                      prediction: "DOWN"
+                      confidence: 0.72
+                    - hour: 1
+                      prediction: "UP"
+                      confidence: 0.85
+                  count: 24
+        '400':
+          $ref: '#/components/responses/ValidationError400'
+        '404':
+          $ref: '#/components/responses/NotFound404'
+        '429':
+          $ref: '#/components/responses/RateLimit429'
+        '500':
+          $ref: '#/components/responses/InternalError500'
+
+  /api/v1/block-predictions/{ticker}/{hour}:
+    get:
+      summary: Get Single Hour Block Prediction
+      description: Get block prediction for a specific hour (0-23)
+      operationId: getHourlyBlockPrediction
+      tags:
+        - Block Predictions
+      parameters:
+        - $ref: '#/components/parameters/TickerParam'
+        - name: hour
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 23
+            example: 14
+          description: Hour of day (0-23)
+        - $ref: '#/components/parameters/DateParam'
+      responses:
+        '200':
+          description: Prediction retrieved
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/BlockPrediction'
+        '400':
+          description: Invalid hour (must be 0-23)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFound404'
+        '500':
+          $ref: '#/components/responses/InternalError500'
+
+  /api/v1/market-status/{ticker}:
+    get:
+      summary: Get Market Status
+      description: Get current market status for a ticker
+      operationId: getMarketStatus
+      tags:
+        - Market Status
+      parameters:
+        - $ref: '#/components/parameters/TickerParam'
+        - name: at_time
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Check status at specific time (ISO 8601)
+      responses:
+        '200':
+          description: Market status retrieved
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/MarketStatus'
+        '400':
+          $ref: '#/components/responses/ValidationError400'
+        '500':
+          $ref: '#/components/responses/InternalError500'
+
+  /health:
+    get:
+      summary: Health Check
+      description: Simple health check endpoint
+      operationId: getHealth
+      tags:
+        - Health & Status
+      responses:
+        '200':
+          $ref: '#/components/responses/Success200'
+        '500':
+          $ref: '#/components/responses/InternalError500'
+
+  /api/v1/data:
+    get:
+      summary: Get All Market Data
+      description: Retrieve current market predictions for all enabled tickers
+      operationId: getAllMarketData
+      tags:
+        - Market Data
+      responses:
+        '200':
+          description: Market data retrieved
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+        '500':
+          $ref: '#/components/responses/InternalError500'
+

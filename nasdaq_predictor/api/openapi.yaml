@@ -1,0 +1,824 @@
+openapi: 3.0.0
+info:
+  title: NASDAQ Predictor API
+  description: |
+    RESTful API for market prediction analysis and historical data access.
+
+    ## Features
+    - Real-time market predictions using AI/ML
+    - Historical market data retrieval
+    - Prediction accuracy metrics and signal analysis
+    - Fibonacci pivot level calculations
+    - Support for multiple trading instruments
+
+    ## Authentication
+    Currently no authentication required. Future versions will support API keys.
+
+    ## Error Handling
+    All errors return standardized JSON responses with:
+    - `success`: false
+    - `error`: Human-readable error message
+    - `error_type`: Exception type
+    - `status`: HTTP status code
+    - `timestamp`: ISO 8601 timestamp
+  version: 1.0.0
+  contact:
+    name: Development Team
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:5000
+    description: Local development server
+  - url: https://api.example.com
+    description: Production server (when available)
+
+tags:
+  - name: Health & Status
+    description: Application health checks and status endpoints
+  - name: Market Data
+    description: Current market data and summaries
+  - name: Predictions
+    description: Market predictions and prediction history
+  - name: Historical Data
+    description: Historical market data and analysis
+  - name: Technical Analysis
+    description: Fibonacci pivots and technical indicators
+  - name: Metrics & Signals
+    description: Prediction accuracy, signals, and analysis
+
+paths:
+  /health:
+    get:
+      summary: Health Check
+      description: Check if the application is healthy and ready
+      operationId: getHealth
+      tags:
+        - Health & Status
+      responses:
+        '200':
+          description: Application is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Health check passed"
+                  data:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: "healthy"
+                      version:
+                        type: string
+                        example: "2.0.0-phase3"
+                      services:
+                        type: object
+                        properties:
+                          database:
+                            type: string
+                            example: "connected"
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /api/health:
+    get:
+      summary: API Health Check
+      description: Check if the API layer is functional
+      operationId: getApiHealth
+      tags:
+        - Health & Status
+      responses:
+        '200':
+          $ref: '#/components/responses/HealthCheckResponse'
+
+  /api/data:
+    get:
+      summary: Get All Market Data
+      description: Retrieve current market predictions for all enabled tickers
+      operationId: getAllMarketData
+      tags:
+        - Market Data
+      responses:
+        '200':
+          description: Market data retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        additionalProperties:
+                          $ref: '#/components/schemas/Prediction'
+                      meta:
+                        type: object
+                        properties:
+                          tickers_count:
+                            type: integer
+                            example: 5
+        '500':
+          $ref: '#/components/responses/ServerErrorResponse'
+
+  /api/market-summary:
+    get:
+      summary: Get Market Summary
+      description: Get aggregated market statistics across all tickers
+      operationId: getMarketSummary
+      tags:
+        - Market Data
+      responses:
+        '200':
+          description: Market summary retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/MarketSummary'
+        '500':
+          $ref: '#/components/responses/ServerErrorResponse'
+
+  /api/refresh/{ticker}:
+    post:
+      summary: Force Refresh Ticker
+      description: Force a fresh prediction calculation for a specific ticker, bypassing cache
+      operationId: refreshTicker
+      tags:
+        - Market Data
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          description: Ticker symbol (e.g., NQ=F)
+          schema:
+            type: string
+            enum: [NQ=F, ES=F, "^FTSE", BTC-USD, ETH-USD]
+      responses:
+        '200':
+          description: Ticker refreshed successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Prediction'
+        '400':
+          $ref: '#/components/responses/ValidationErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServerErrorResponse'
+
+  /api/predictions/{ticker}:
+    get:
+      summary: Get Current Prediction
+      description: Get the current market prediction for a specific ticker
+      operationId: getPrediction
+      tags:
+        - Predictions
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          description: Ticker symbol (e.g., NQ=F)
+          schema:
+            type: string
+            enum: [NQ=F, ES=F, "^FTSE", BTC-USD, ETH-USD]
+      responses:
+        '200':
+          description: Prediction retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Prediction'
+        '400':
+          $ref: '#/components/responses/ValidationErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServerErrorResponse'
+
+  /api/predictions/{ticker}/history-24h:
+    get:
+      summary: Get 24-Hour Prediction History
+      description: Get hourly prediction history for the past 24 hours
+      operationId: getPredictionHistory24h
+      tags:
+        - Predictions
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          description: Ticker symbol
+          schema:
+            type: string
+            enum: [NQ=F, ES=F, "^FTSE", BTC-USD, ETH-USD]
+        - name: limit
+          in: query
+          description: Maximum number of predictions to return
+          schema:
+            type: integer
+            default: 24
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Prediction history retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Prediction'
+        '400':
+          $ref: '#/components/responses/ValidationErrorResponse'
+        '500':
+          $ref: '#/components/responses/ServerErrorResponse'
+
+  /api/history/{ticker}:
+    get:
+      summary: Get Historical Market Data
+      description: Retrieve historical OHLC data for a specific ticker
+      operationId: getHistoricalData
+      tags:
+        - Historical Data
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          description: Ticker symbol
+          schema:
+            type: string
+            enum: [NQ=F, ES=F, "^FTSE", BTC-USD, ETH-USD]
+        - name: days
+          in: query
+          description: Number of days of history
+          schema:
+            type: integer
+            default: 5
+            minimum: 1
+            maximum: 365
+        - name: interval
+          in: query
+          description: Data interval
+          schema:
+            type: string
+            default: 1d
+            enum: [1m, 5m, 15m, 30m, 1h, 1d, 1wk, 1mo]
+        - name: limit
+          in: query
+          description: Maximum number of records
+          schema:
+            type: integer
+            default: 100
+            minimum: 1
+            maximum: 1000
+      responses:
+        '200':
+          description: Historical data retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/OHLC'
+        '400':
+          $ref: '#/components/responses/ValidationErrorResponse'
+        '500':
+          $ref: '#/components/responses/ServerErrorResponse'
+
+  /api/fibonacci-pivots/{ticker}:
+    get:
+      summary: Get Fibonacci Pivots for All Timeframes
+      description: Get Fibonacci pivot levels across daily, weekly, and monthly timeframes
+      operationId: getFibonacciPivots
+      tags:
+        - Technical Analysis
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          description: Ticker symbol
+          schema:
+            type: string
+            enum: [NQ=F, ES=F, "^FTSE", BTC-USD, ETH-USD]
+      responses:
+        '200':
+          description: Fibonacci pivots retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          daily:
+                            $ref: '#/components/schemas/FibonacciPivots'
+                          weekly:
+                            $ref: '#/components/schemas/FibonacciPivots'
+                          monthly:
+                            $ref: '#/components/schemas/FibonacciPivots'
+        '400':
+          $ref: '#/components/responses/ValidationErrorResponse'
+        '500':
+          $ref: '#/components/responses/ServerErrorResponse'
+
+  /api/fibonacci-pivots/{ticker}/{timeframe}:
+    get:
+      summary: Get Fibonacci Pivots for Specific Timeframe
+      description: Get Fibonacci pivot levels for a specific timeframe
+      operationId: getFibonacciPivotsTimeframe
+      tags:
+        - Technical Analysis
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          description: Ticker symbol
+          schema:
+            type: string
+            enum: [NQ=F, ES=F, "^FTSE", BTC-USD, ETH-USD]
+        - name: timeframe
+          in: path
+          required: true
+          description: Timeframe
+          schema:
+            type: string
+            enum: [daily, weekly, monthly]
+      responses:
+        '200':
+          description: Fibonacci pivots retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/FibonacciPivots'
+        '400':
+          $ref: '#/components/responses/ValidationErrorResponse'
+        '500':
+          $ref: '#/components/responses/ServerErrorResponse'
+
+  /api/accuracy/{ticker}:
+    get:
+      summary: Get Prediction Accuracy Metrics
+      description: Get accuracy statistics for predictions of a specific ticker
+      operationId: getAccuracy
+      tags:
+        - Metrics & Signals
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          description: Ticker symbol
+          schema:
+            type: string
+            enum: [NQ=F, ES=F, "^FTSE", BTC-USD, ETH-USD]
+        - name: period_hours
+          in: query
+          description: Time period in hours for accuracy calculation
+          schema:
+            type: integer
+            default: 24
+            minimum: 1
+            maximum: 720
+      responses:
+        '200':
+          description: Accuracy metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AccuracyMetrics'
+        '400':
+          $ref: '#/components/responses/ValidationErrorResponse'
+        '500':
+          $ref: '#/components/responses/ServerErrorResponse'
+
+  /api/signals/{ticker}:
+    get:
+      summary: Get Signal Analysis
+      description: Get detailed signal analysis for a specific ticker
+      operationId: getSignals
+      tags:
+        - Metrics & Signals
+      parameters:
+        - name: ticker
+          in: path
+          required: true
+          description: Ticker symbol
+          schema:
+            type: string
+            enum: [NQ=F, ES=F, "^FTSE", BTC-USD, ETH-USD]
+      responses:
+        '200':
+          description: Signal analysis retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SignalAnalysis'
+        '400':
+          $ref: '#/components/responses/ValidationErrorResponse'
+        '500':
+          $ref: '#/components/responses/ServerErrorResponse'
+
+  /api/prediction/{prediction_id}/signals:
+    get:
+      summary: Get Signals for Specific Prediction
+      description: Get detailed signals that contributed to a specific prediction
+      operationId: getPredictionSignals
+      tags:
+        - Metrics & Signals
+      parameters:
+        - name: prediction_id
+          in: path
+          required: true
+          description: Prediction UUID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Prediction signals retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          prediction_id:
+                            type: string
+                            format: uuid
+                          signals:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Signal'
+                          timestamp:
+                            type: string
+                            format: date-time
+        '400':
+          $ref: '#/components/responses/ValidationErrorResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundResponse'
+        '500':
+          $ref: '#/components/responses/ServerErrorResponse'
+
+components:
+  schemas:
+    SuccessResponse:
+      type: object
+      required: [success, message, timestamp]
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Prediction retrieved for NQ=F"
+        timestamp:
+          type: string
+          format: date-time
+        meta:
+          type: object
+          additionalProperties: true
+
+    PaginatedResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            meta:
+              type: object
+              properties:
+                total:
+                  type: integer
+                  example: 100
+                page:
+                  type: integer
+                  example: 1
+                page_size:
+                  type: integer
+                  example: 20
+
+    ErrorResponse:
+      type: object
+      required: [success, error, error_type, status, timestamp]
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: "Error message"
+        error_type:
+          type: string
+          example: "ValidationException"
+        status:
+          type: integer
+          example: 400
+        timestamp:
+          type: string
+          format: date-time
+
+    Prediction:
+      type: object
+      required: [symbol, prediction, confidence, timestamp]
+      properties:
+        symbol:
+          type: string
+          example: "NQ=F"
+        prediction:
+          type: string
+          enum: [BULLISH, BEARISH, NEUTRAL]
+          example: "BULLISH"
+        confidence:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          example: 78.5
+        weighted_score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          example: 0.785
+        timestamp:
+          type: string
+          format: date-time
+        market_status:
+          type: string
+          enum: [OPEN, CLOSED, PREMARKET]
+          example: "OPEN"
+
+    OHLC:
+      type: object
+      required: [symbol, timestamp, open, high, low, close, volume]
+      properties:
+        symbol:
+          type: string
+          example: "NQ=F"
+        timestamp:
+          type: string
+          format: date-time
+        open:
+          type: number
+          format: float
+          example: 19500.50
+        high:
+          type: number
+          format: float
+          example: 19750.75
+        low:
+          type: number
+          format: float
+          example: 19400.25
+        close:
+          type: number
+          format: float
+          example: 19650.00
+        volume:
+          type: integer
+          example: 1500000
+
+    MarketSummary:
+      type: object
+      required: [bullish_count, bearish_count, avg_confidence, timestamp]
+      properties:
+        bullish_count:
+          type: integer
+          example: 3
+        bearish_count:
+          type: integer
+          example: 2
+        avg_confidence:
+          type: number
+          format: float
+          example: 72.5
+        overall_trend:
+          type: string
+          enum: [BULLISH, BEARISH, NEUTRAL]
+          example: "BULLISH"
+        market_status:
+          type: string
+          example: "OPEN"
+        last_update_seconds_ago:
+          type: integer
+          example: 45
+
+    FibonacciPivots:
+      type: object
+      required: [symbol, timeframe, pivot_point, resistance_1, support_1]
+      properties:
+        symbol:
+          type: string
+          example: "NQ=F"
+        timeframe:
+          type: string
+          enum: [daily, weekly, monthly]
+        date:
+          type: string
+          format: date-time
+        high:
+          type: number
+          format: float
+        low:
+          type: number
+          format: float
+        pivot_point:
+          type: number
+          format: float
+        resistance_1:
+          type: number
+          format: float
+        resistance_2:
+          type: number
+          format: float
+        resistance_3:
+          type: number
+          format: float
+        support_1:
+          type: number
+          format: float
+        support_2:
+          type: number
+          format: float
+        support_3:
+          type: number
+          format: float
+
+    AccuracyMetrics:
+      type: object
+      required: [symbol, total_predictions, correct_predictions, accuracy_percentage]
+      properties:
+        symbol:
+          type: string
+          example: "NQ=F"
+        period_hours:
+          type: integer
+          example: 24
+        total_predictions:
+          type: integer
+          example: 48
+        correct_predictions:
+          type: integer
+          example: 35
+        accuracy_percentage:
+          type: number
+          format: float
+          example: 72.9
+        confidence_avg:
+          type: number
+          format: float
+          example: 75.2
+        timestamp:
+          type: string
+          format: date-time
+
+    Signal:
+      type: object
+      required: [name, value]
+      properties:
+        name:
+          type: string
+          example: "momentum_signal"
+        value:
+          type: number
+          format: float
+          example: 0.85
+        weight:
+          type: number
+          format: float
+          example: 0.2
+        contribution:
+          type: number
+          format: float
+          example: 0.17
+
+    SignalAnalysis:
+      type: object
+      required: [symbol, signals, timestamp]
+      properties:
+        symbol:
+          type: string
+          example: "NQ=F"
+        signals:
+          type: array
+          items:
+            $ref: '#/components/schemas/Signal'
+        total_weight:
+          type: number
+          format: float
+          example: 2.5
+        timestamp:
+          type: string
+          format: date-time
+
+  responses:
+    HealthCheckResponse:
+      description: Health check successful
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/SuccessResponse'
+              - type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: "healthy"
+                      version:
+                        type: string
+                        example: "2.0.0-phase3"
+
+    ValidationErrorResponse:
+      description: Validation error - invalid parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error: "Invalid ticker: FOO. Allowed tickers: BTC-USD, ES=F, ETH-USD, NQ=F, ^FTSE"
+            error_type: ValidationException
+            status: 400
+            timestamp: "2025-11-12T00:00:00.000000"
+
+    NotFoundResponse:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error: "No prediction available for NQ=F"
+            error_type: NotFound
+            status: 404
+            timestamp: "2025-11-12T00:00:00.000000"
+
+    ServerErrorResponse:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error: "Internal server error"
+            error_type: ServerError
+            status: 500
+            timestamp: "2025-11-12T00:00:00.000000"

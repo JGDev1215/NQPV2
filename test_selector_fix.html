@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CSS Selector Fix Test</title>
+    <style>
+        .hidden-row {
+            display: none;
+        }
+        .hidden-row.show {
+            display: table-row;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>CSS Selector Fix Test</h1>
+
+    <h2>Testing symbol: ES=F</h2>
+    <div id="ES=F-details">
+        <table>
+            <tbody>
+                <tr><td>Row 1 - Always visible</td></tr>
+                <tr><td>Row 2 - Always visible</td></tr>
+                <tr><td>Row 3 - Always visible</td></tr>
+                <tr><td>Row 4 - Always visible</td></tr>
+                <tr><td>Row 5 - Always visible</td></tr>
+                <tr class="hidden-row"><td>Row 6 - Hidden by default</td></tr>
+                <tr class="hidden-row"><td>Row 7 - Hidden by default</td></tr>
+                <tr class="hidden-row"><td>Row 8 - Hidden by default</td></tr>
+            </tbody>
+        </table>
+        <button onclick="toggleReferenceLevels('ES=F')">Show All 8 Levels</button>
+        <span id="ES=F-toggle-levels-text"></span>
+    </div>
+
+    <hr>
+
+    <h2>Testing symbol: ^FTSE</h2>
+    <div id="^FTSE-details">
+        <table>
+            <tbody>
+                <tr><td>Row 1 - Always visible</td></tr>
+                <tr><td>Row 2 - Always visible</td></tr>
+                <tr><td>Row 3 - Always visible</td></tr>
+                <tr><td>Row 4 - Always visible</td></tr>
+                <tr><td>Row 5 - Always visible</td></tr>
+                <tr class="hidden-row"><td>Row 6 - Hidden by default</td></tr>
+                <tr class="hidden-row"><td>Row 7 - Hidden by default</td></tr>
+            </tbody>
+        </table>
+        <button onclick="toggleReferenceLevels('^FTSE')">Show All 7 Levels</button>
+        <span id="^FTSE-toggle-levels-text"></span>
+    </div>
+
+    <script>
+        function toggleReferenceLevels(symbol) {
+            console.log('toggleReferenceLevels called with symbol:', symbol);
+
+            // Escape special characters in symbol for CSS selectors (e.g., 'ES=F', '^FTSE')
+            const escapedSymbol = CSS.escape(symbol);
+            console.log('Escaped symbol:', escapedSymbol);
+
+            const hiddenRows = document.querySelectorAll(`#${escapedSymbol}-details .hidden-row`);
+            console.log('Found hidden rows:', hiddenRows.length);
+
+            const toggleText = document.getElementById(`${escapedSymbol}-toggle-levels-text`);
+
+            const isShowing = hiddenRows[0]?.classList.contains('show');
+            console.log('isShowing:', isShowing);
+
+            hiddenRows.forEach(row => {
+                if (isShowing) {
+                    row.classList.remove('show');
+                } else {
+                    row.classList.add('show');
+                }
+            });
+
+            if (toggleText) {
+                const totalLevels = document.querySelectorAll(`#${escapedSymbol}-details table tbody tr`).length;
+                toggleText.textContent = isShowing
+                    ? `Show All ${totalLevels} Levels`
+                    : 'Show Less';
+            }
+        }
+
+        // Test on page load
+        console.log('Testing CSS.escape():');
+        console.log('ES=F → ', CSS.escape('ES=F'));
+        console.log('^FTSE → ', CSS.escape('^FTSE'));
+        console.log('NQ=F → ', CSS.escape('NQ=F'));
+    </script>
+</body>
+</html>
